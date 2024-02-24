@@ -13,40 +13,35 @@ def removeTopRetical(pixels,x,y):
         pixels[x,y] = transparentColor
 
 def formatDots(xDotsCoordinate,yDotsCoordinate):
+    lengthMinorArr = len(xDotsCoordinate) // 2
+    xMinor_1 = xDotsCoordinate[:lengthMinorArr]
+    xMinor_2 = xDotsCoordinate[lengthMinorArr:]
+
+    xMinor_2.pop(0)
+    
     if xDotsCoordinate[3] - xDotsCoordinate[2] > 25: 
-        return xDotsCoordinate,yDotsCoordinate
+        return xMinor_1,xMinor_2,yDotsCoordinate
     else:
-        lengthMinorArr = len(xDotsCoordinate) // 2
-        xMinor_1 = xDotsCoordinate[:lengthMinorArr]
-        xMinor_2 = xDotsCoordinate[lengthMinorArr:]
-
-        # xMinor_1.pop(-1)
         xMinor_1.reverse()
-        xMinor_2.pop(0)
-
         xMinor_1 = [x for index,x in enumerate(xMinor_1) if index%2==1]
         xMinor_2 = [y for index,y in enumerate(xMinor_2) if index%2==1]
-
         xMinor_1.reverse()
-
-        xResult = xMinor_1 + xMinor_2
         yResult = [yCoor for index, yCoor in enumerate(yDotsCoordinate) if index%2==1]
+        return xMinor_1,xMinor_2,yResult
 
-        return xResult,yResult
 
+filenames = next(walk("./red/reticle_type_0"), (None, None, []))[2]
 
-filenames = next(walk("./reticle_type_0"), (None, None, []))[2]
-
-print(filenames)
 
 for filename in filenames:
-    image = Image.open(f'./reticle_type_0/{filename}',"r")
+    image = Image.open(f'./red/reticle_type_0/{filename}',"r")
     pixels = image.load()
     width, height = image.size
 
     xDotsCoordinate = []
     yDotsCoordinate = []
-    dots = []
+    lDots = []
+    rDots = []
 
     for x in range(width):
         for y in range(height):
@@ -62,18 +57,23 @@ for filename in filenames:
         if (r, g, b) == colorTobeReplace:
             yDotsCoordinate.append(y)
 
-    xDots,yDots = formatDots(xDotsCoordinate,yDotsCoordinate[1:])
+    x1,x2,yDots = formatDots(xDotsCoordinate,yDotsCoordinate[1:])
 
-    for x in xDots:
+    # print(x1,x2,yDots,None)
+    for x in x1:
         for y in yDots:
-            dots.append((x,y))
+            lDots.extend([(x,y),(x-1,y),(x,y+1),(x-1,y+1)])
+
+    for x in x2:
+        for y in yDots:
+            rDots.extend([(x,y),(x+1,y),(x,y+1),(x+1,y+1)])
 
     for x in range(width):
         for y in range(height):
-            if (x,y) in dots:
+            if (x,y) in lDots+rDots:
                 pixels[x,y] = colorTobeReplace
 
-    image.save(f'./new_reticle_type_0/{filename}', 'PNG')
+    image.save(f'./red/new_reticle_type_0/{filename}', 'PNG')
 
 
 
